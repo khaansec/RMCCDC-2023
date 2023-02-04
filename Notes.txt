@@ -42,6 +42,19 @@ taskkill /IM <process_name.exe> /F
 #temporarily disable IE Enhanced Security Configuration first
 wget https://download.sysinternals.com/files/SysinternalsSuite.zip
 
+#download swift on security's config file
+#sysmon is not a GUI application, rather it sets up efficient logging in event viewer under Applications and Services Logs > Microsoft > Windows > Sysmon > Operational
+wget https://github.com/SwiftOnSecurity/sysmon-config/blob/master/sysmonconfig-export.xml
+
+#install sysmon with a config file for the first time
+sysmon -accepteula -i c:\windows\config.xml
+
+#official windows documentation identifies some events of note
+#https://learn.microsoft.com/en-us/sysinternals/downloads/sysmon
+
+#optionally use the below if wget is not installed
+Invoke-WebRequest -Uri <URL> -OutFile <full path>
+
 #============================================================================================================================================================
 
 
