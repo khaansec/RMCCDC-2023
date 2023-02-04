@@ -1,3 +1,5 @@
+#ETERNAL BLUE
+
 #Eternal Blue affects SMBv1. Remove this service to mitigate
 #https://www.avast.com/c-eternalblue
 
@@ -6,8 +8,46 @@ Get-WindowsOptionalFeature -Online -FeatureName SMB1Protocol
 #remove
 Disable-WindowsOptionalFeature -Online -FeatureName SMB1Protocol
 
+#==============================================================================================================================================================================
+
+#BULK PASSWORD CHANGE
+
 #get all ou's in a domain
 dsquery *
 
 #change all passwords in an ou
 dsquery user ou=path,ou=to,dc=AD,dc=OU | dsmod user -pwd P@55w0rd!
+
+#==============================================================================================================================================================================
+
+#IP'S IN FILES
+
+#check for IPs in a file using regex
+Select-String -Path "C:\Users\Administrator\Desktop\test.reg" 'http\://(\d {1,2}| (0|1)\d{2}|2 [0-4]\d|25 [0-5])' -AllMatches
+
+#==============================================================================================================================================================================
+
+#KILL MALWARE
+
+#kills a file based off of its name continuosly
+while ($true) {
+taskkill /IM <process_name.exe> /F
+}
+
+#==============================================================================================================================================================================
+
+#SYSINTERNALS
+
+#download sysinternals like autoruns, process explorer, sysmon, etc
+#temporarily disable IE Enhanced Security Configuration first
+wget https://download.sysinternals.com/files/SysinternalsSuite.zip
+
+#==============================================================================================================================================================================
+
+
+
+
+
+
+
+
