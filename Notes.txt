@@ -1,0 +1,13 @@
+#Eternal Blue affects SMBv1. Remove this service to mitigate
+#https://www.avast.com/c-eternalblue
+
+#detect
+Get-WindowsOptionalFeature -Online -FeatureName SMB1Protocol
+#remove
+Disable-WindowsOptionalFeature -Online -FeatureName SMB1Protocol
+
+#get all ou's in a domain
+dsquery *
+
+#change all passwords in an ou
+dsquery user ou=path,ou=to,dc=AD,dc=OU | dsmod user -pwd P@55w0rd!
