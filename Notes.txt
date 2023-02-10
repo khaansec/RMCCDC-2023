@@ -57,7 +57,32 @@ Invoke-WebRequest -Uri <URL> -OutFile <full path>
 
 #============================================================================================================================================================
 
+#REGISTRY KEYS
 
+#we should modify certain registry keys to further lock down our systems and reduce our attack surface
+#some of these settings, if left on, can leave attack vectors open to the attackers
+
+#disable sticky keys
+reg add "HKCU\Control Panel\Accessibility\StickyKeys" /v Flags /t REG_SZ /d 506 /f
+
+#disable RDP
+reg add "HKLM\SYSTEM\CurrentControlSet\Control\Terminal Server" /v fDenyTSConnections /t REG_DWORD /d 1 /f
+
+#disable OSK
+reg add "HKLM\SOFTWARE\Microsoft\WIndows\CurrentVersion\Authentication\LogonUI" /v ShowTabletKeyboard /t REG_DWORD /d 0 /f
+
+#disable admin share on workstations
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\LanmanServer\Parameters" /v AutoShareWks /t REG_DWORD /d 0 /f
+
+
+
+
+
+
+
+#need to verify the below
+#disallow a specific file to run
+reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer" /v DisallowRun /t REG_DWORD /d "00000001"
 
 
 
