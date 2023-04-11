@@ -1,3 +1,7 @@
+# Overall, things were pretty interesting. Our team lost access to the DC, which beyond causing distress, led me to waste a bunch of time on getting back in. 
+# Even though I learned a lot about wmic because of this, I ended up not helping out other as much as I could have, due to my fixation with restoring access to the DC.
+# I learned about keeping a cool head and not being bogged down by the details, or singular issue, and looking at things as a whole.
+
 # changing all passwords in a domain quickly
 $pass = read-host -AsSecureString; dsquery user "" | dsmod -pwd $pass
 
